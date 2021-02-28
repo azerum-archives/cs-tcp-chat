@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpChatClient", "TcpChatCli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpChatServer", "TcpChatServer\TcpChatServer.csproj", "{DB0A0906-8929-47D1-977B-22C9D86D8E86}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatProtocol", "ChatProtocol\ChatProtocol.csproj", "{8006035A-8E8A-45AD-BEE5-6EDDC4643ED3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DB0A0906-8929-47D1-977B-22C9D86D8E86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB0A0906-8929-47D1-977B-22C9D86D8E86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB0A0906-8929-47D1-977B-22C9D86D8E86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8006035A-8E8A-45AD-BEE5-6EDDC4643ED3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8006035A-8E8A-45AD-BEE5-6EDDC4643ED3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8006035A-8E8A-45AD-BEE5-6EDDC4643ED3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8006035A-8E8A-45AD-BEE5-6EDDC4643ED3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
