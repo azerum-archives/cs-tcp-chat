@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace TcpChatServer
 {
@@ -35,20 +30,15 @@ namespace TcpChatServer
             }
         }
 
-        public async Task BroadcastMessageAsync(ClientSession senderSession, string message)
+        public void BroadcastMessage(ClientSession senderSession, string message)
         {
-            List<Task> tasks = new List<Task>();
-
             foreach (ClientSession session in sessions)
             {
                 if (session != senderSession)
                 {
-                    Task task = session.SendMessageToUserAsync(message);
-                    tasks.Add(task);
+                    session.SendMessageToUser(message);
                 }
             }
-
-            await Task.WhenAll(tasks);
         }
     }
 }

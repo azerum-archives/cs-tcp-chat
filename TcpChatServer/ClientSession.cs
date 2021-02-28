@@ -1,6 +1,7 @@
-﻿using System.Net.Sockets;
+﻿using ChatProtocol;
+
+using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace TcpChatServer
 {
@@ -11,18 +12,14 @@ namespace TcpChatServer
         private TcpClient tcpClient;
         private string clientNickname;
 
-        private MessagesReader messagesReader;
-        private MessagesWriter messageWriter;
+        private ChatClient chatClient;
 
         public ClientSession(Server server, TcpClient tcpClient)
         {
             this.server = server;
             this.tcpClient = tcpClient;
 
-            NetworkStream stream = tcpClient.GetStream();
-
-            messagesReader = new MessagesReader(stream);
-            messageWriter = new MessagesWriter(stream);
+            chatClient = new ChatClient(tcpClient.GetStream());
         }
 
         public void AuthorizeUserAndProcessMessagesAsync()
@@ -35,26 +32,26 @@ namespace TcpChatServer
 
         private void AuthorizeUserAndProcessMessages()
         {
-            messagesReader.ReadMessage(out clientNickname);
-            server.BroadcastMessageAsync(this, $"{clientNickname} has joined the chat").Forget();
+            clientNickname = chatClient.RecieveMessage();
+            server.BroadcastMessage(this, $"{clientNickname} has joined the chat");
 
             while (true)
             {
-                int bytesReadCount = messagesReader.ReadMessage(out string message);
+                string message = chatClient.RecieveMessage();
 
-                if (bytesReadCount == 0)
+                if (message == null)
                 {
                     //TODO: уведомить других пользователей об отключении этого клиента.
                     break;
                 }
 
-                server.BroadcastMessageAsync(this, $"{clientNickname}: {message}").Forget();
+                server.BroadcastMessage(this, $"{clientNickname}: {message}");
             }
         }
 
-        public async Task SendMessageToUserAsync(string message)
+        public void SendMessageToUser(string message)
         {
-            await messageWriter.SendMessageAsync(message);
+            chatClient.SendMessage(message);
         }
     }
 }
