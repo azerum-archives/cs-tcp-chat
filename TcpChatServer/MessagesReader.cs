@@ -16,23 +16,20 @@ namespace TcpChatServer
 
         public int ReadMessage(out string message)
         {
-            int messageBodySize = ReadMessageBodySize();
-            int bytesReadCount = ReadMessageBody(out message, messageBodySize);
+            int messageLength = ReadMessageLength();
+            int bytesReadCount = ReadMessage(out message, messageLength);
 
             return bytesReadCount;
         }
 
-        private int ReadMessageBodySize()
+        private int ReadMessageLength()
         {
-            byte[] sizeBytes = new byte[sizeof(int)];
+            byte[] messageLengthBytes = new byte[sizeof(int)];
 
-            //TODO: обрабатывать ошибку если читаються на все sizeof(int) байт.
-            stream.Read(sizeBytes, 0, sizeBytes.Length);
+            //TODO: обрабатывать ошибку если читаются меньше sizeof(int) байт.
+            stream.Read(messageLengthBytes, 0, messageLengthBytes.Length);
 
-            //При передаче по сети используется порядок байт big-endian.
-            //В некоторых системах, например в Windows, порядок байт обратный - little-endian.
-            //Изменяем порядок полученых байт, если это нужно для нашей системы.
-            return ConvertNetworkOrderBytesToInt32(sizeBytes);
+            return ConvertNetworkOrderBytesToInt32(messageLengthBytes);
         }
 
         private int ConvertNetworkOrderBytesToInt32(byte[] bytes)
@@ -45,12 +42,12 @@ namespace TcpChatServer
             return BitConverter.ToInt32(bytes, 0);
         }
 
-        private int ReadMessageBody(out string messageBody, int messageBodySize)
+        private int ReadMessage(out string message, int messageLength)
         {
-            byte[] recieveBuffer = new byte[messageBodySize];
+            byte[] recieveBuffer = new byte[messageLength];
 
             int bytesReadCount = stream.Read(recieveBuffer, 0, recieveBuffer.Length);
-            messageBody = Encoding.UTF8.GetString(recieveBuffer, 0, bytesReadCount);
+            message = Encoding.UTF8.GetString(recieveBuffer, 0, bytesReadCount);
 
             return bytesReadCount;
         }
