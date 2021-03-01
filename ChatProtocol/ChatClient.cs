@@ -47,7 +47,9 @@ namespace ChatProtocol
         /// Отправляет чат-сообщение, которое можно прочитать при помощи
         /// <see cref="ChatClient.RecieveMessage"/>.
         /// </summary>
-        /// <param name="message">Сообщение, которое будет отправлено.</param>
+        /// <param name="message"> Сообщение, которое будет отправлено. </param>
+        /// <exception cref="System.IO.IOException"/>
+        /// <exception cref="ObjectDisposedException"/>
         public void SendMessage(string message)
         {
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
@@ -80,7 +82,7 @@ namespace ChatProtocol
         /// по сети закрыто.
         /// </para>
         /// </summary>
-        /// <exception cref="InvalidMessageException"/>
+        /// <exception cref="MalformedMessageException"/>
         /// <exception cref="System.IO.IOException"/>
         /// <exception cref="ObjectDisposedException"/>
         public string RecieveMessage()
@@ -110,7 +112,7 @@ namespace ChatProtocol
         /// закрыто.
         /// </para>
         /// </summary>
-        /// <exception cref="InvalidMessageException"/>
+        /// <exception cref="MalformedMessageException"/>
         /// <exception cref="System.IO.IOException"/>
         /// <exception cref="ObjectDisposedException"/>
         private ushort? ReadMessageLength()
@@ -125,7 +127,7 @@ namespace ChatProtocol
 
             if (bytesReadCount < sizeof(ushort))
             {
-                throw new InvalidMessageException($"Сообщение должно содержать {sizeof(ushort)} байт заголовка.");
+                throw new MalformedMessageException($"Сообщение должно содержать {sizeof(ushort)} байт заголовка.");
             }
 
             if (!BitConverter.IsLittleEndian)
@@ -144,7 +146,7 @@ namespace ChatProtocol
         /// </para>
         /// <para> Возвращает не-<c>null</c> строку сообщения. </para>
         /// </summary>
-        /// <exception cref="InvalidMessageException"/>
+        /// <exception cref="MalformedMessageException"/>
         /// <exception cref="System.IO.IOException"/>
         /// <exception cref="ObjectDisposedException"/>
         private string ReadMessage(ushort messageLength)
@@ -154,7 +156,7 @@ namespace ChatProtocol
 
             if (bytesReadCount < messageLength)
             {
-                throw new InvalidMessageException("Длина сообщения не соответсвтует длине, указанной в его заголоке.");
+                throw new MalformedMessageException("Длина сообщения не соответсвтует длине, указанной в его заголоке.");
             }
 
             string message = Encoding.UTF8.GetString(messageBytes, 0, messageBytes.Length);
