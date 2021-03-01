@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
@@ -8,6 +9,8 @@ namespace TcpChatServer
     {
         private int port;
         private List<ClientSession> sessions;
+
+        private object removeSessionLock = new object();
 
         public Server(int port)
         {
@@ -20,6 +23,8 @@ namespace TcpChatServer
             //Прослушиваем подключения на всех сетевых интерфейсах компьютера.
             TcpListener listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
+
+            Console.WriteLine($"Server started on {IPAddress.Any}:{port}");
 
             while (true)
             {
@@ -39,6 +44,14 @@ namespace TcpChatServer
                 {
                     session.SendMessageToUser(message);
                 }
+            }
+        }
+
+        public void RemoveSession(ClientSession session)
+        {
+            lock (removeSessionLock)
+            {
+                sessions.Remove(session);
             }
         }
     }
