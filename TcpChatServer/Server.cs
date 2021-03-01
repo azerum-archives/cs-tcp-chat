@@ -7,32 +7,53 @@ namespace TcpChatServer
 {
     class Server
     {
-        private int port;
-        private List<ClientSession> sessions;
+        private readonly int port;
+        private readonly TcpListener listener;
 
-        private object removeSessionLock = new object();
+        private readonly List<ClientSession> sessions;
 
+        private readonly object removeSessionLock = new object();
+        
         public Server(int port)
         {
             this.port = port;
+
+            //Сервер будет прослушивать подключения на всех сетевых интерфейсах компьютера.
+            listener = new TcpListener(IPAddress.Any, port);
+
             sessions = new List<ClientSession>();
         }
 
         public void AcceptClients()
         {
-            //Прослушиваем подключения на всех сетевых интерфейсах компьютера.
-            TcpListener listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
 
             Console.WriteLine($"Server started on {IPAddress.Any}:{port}");
 
-            while (true)
+            try
             {
-                TcpClient tcpClient = listener.AcceptTcpClient();
-                ClientSession session = new ClientSession(this, tcpClient);
+                while (true)
+                {
+                    TcpClient tcpClient = listener.AcceptTcpClient();
+                    ClientSession session = new ClientSession(this, tcpClient);
 
-                sessions.Add(session);
-                session.AuthorizeUserAndProcessMessagesAsync();
+                    sessions.Add(session);
+                    session.AuthorizeUserAndProcessMessagesAsync();
+                }
+            }
+            finally
+            {
+                Stop();
+            }
+        }
+
+        public void Stop()
+        {
+            listener.Stop();
+
+            foreach (ClientSession session in sessions)
+            {
+                session.Close();
             }
         }
 

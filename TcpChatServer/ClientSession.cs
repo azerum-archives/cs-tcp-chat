@@ -8,15 +8,15 @@ namespace TcpChatServer
 {
     class ClientSession
     {
-        private Server server;
+        private readonly Server server;
 
-        private TcpClient tcpClient;
+        private readonly TcpClient tcpClient;
         private string clientNickname;
 
-        private ChatClient chatClient;
+        private readonly ChatClient chatClient;
 
         private bool opened;
-        private object openedLock = new object();
+        private readonly object openedLock = new object();
 
         public ClientSession(Server server, TcpClient tcpClient)
         {
@@ -107,6 +107,7 @@ namespace TcpChatServer
                 }
             }
 
+            server.RemoveSession(this);
             tcpClient.Close();
         }
 
