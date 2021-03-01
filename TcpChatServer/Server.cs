@@ -66,6 +66,8 @@ namespace TcpChatServer
                     session.SendMessageToUser(message);
                 }
             }
+
+            Console.WriteLine(message);
         }
 
         public void RemoveSession(ClientSession session)
