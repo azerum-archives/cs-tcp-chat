@@ -8,9 +8,19 @@ namespace ChatProtocol
     {
         private readonly NetworkStream stream;
 
+        /// <summary>
+        /// <para>
+        /// Создай клиент для отправки и получения чат-сообщений
+        /// по протоколу TCP по сетевому потоку.
+        /// </para>
+        /// <para>
+        /// Подразумеваеться, что поток <paramref name="stream"/> открыт.
+        /// </para>
+        /// </summary>
+        /// <exception cref="ArgumentNullException"/>
         public ChatClient(NetworkStream stream)
         {
-            this.stream = stream;
+            this.stream = stream ?? throw new ArgumentNullException("stream");
         }
 
         #region Формат сообщений
@@ -33,6 +43,11 @@ namespace ChatProtocol
         //и когда начинается другое.
         #endregion
 
+        /// <summary>
+        /// Отправляет чат-сообщение, которое можно прочитать при помощи
+        /// <see cref="ChatClient.RecieveMessage"/>.
+        /// </summary>
+        /// <param name="message">Сообщение, которое будет отправлено.</param>
         public void SendMessage(string message)
         {
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
@@ -55,8 +70,50 @@ namespace ChatProtocol
             stream.Write(messageBytes, 0, messageBytes.Length);
         }
 
-        //TODO: отрефакторить это
+        /// <summary>
+        /// <para>
+        /// Получает чат-сообщение. Если доступных сообщений нет, 
+        /// то метод блокируеться в ожидании нового сообщения.
+        /// </para>
+        /// <para>
+        /// Возвращает строку сообщения, или <c>null</c>, если подключение
+        /// по сети закрыто.
+        /// </para>
+        /// </summary>
+        /// <exception cref="InvalidMessageException"/>
+        /// <exception cref="System.IO.IOException"/>
+        /// <exception cref="ObjectDisposedException"/>
         public string RecieveMessage()
+        {
+            ushort? messageLength = ReadMessageLength();
+
+            if (messageLength == null)
+            {
+                return null;
+            }
+
+            //Оптимизация: при длине сообщения 0 можно не вызывать ReadMessage(),
+            //а сразу возвращать пустую строку.
+            if (messageLength == 0)
+            {
+                return "";
+            }
+
+            return ReadMessage(messageLength.Value);
+        }
+
+
+        /// <summary>
+        /// <para> Читает заголовок сообщения с его длиной из сетевого потока. </para>
+        /// <para>
+        /// Возвращает длину сообщения, или <c>null</c>, если соеднинение по сети
+        /// закрыто.
+        /// </para>
+        /// </summary>
+        /// <exception cref="InvalidMessageException"/>
+        /// <exception cref="System.IO.IOException"/>
+        /// <exception cref="ObjectDisposedException"/>
+        private ushort? ReadMessageLength()
         {
             byte[] messageLengthBytes = new byte[sizeof(ushort)];
             int bytesReadCount = stream.Read(messageLengthBytes, 0, messageLengthBytes.Length);
@@ -68,7 +125,7 @@ namespace ChatProtocol
 
             if (bytesReadCount < sizeof(ushort))
             {
-                throw new InvalidMessageFormatException($"Сообщение должно содержать {sizeof(ushort)} байт заголовка.");
+                throw new InvalidMessageException($"Сообщение должно содержать {sizeof(ushort)} байт заголовка.");
             }
 
             if (!BitConverter.IsLittleEndian)
@@ -76,19 +133,28 @@ namespace ChatProtocol
                 Array.Reverse(messageLengthBytes);
             }
 
-            ushort messageLength = BitConverter.ToUInt16(messageLengthBytes, 0);
+            return BitConverter.ToUInt16(messageLengthBytes, 0);
+        }
 
-            if (messageLength == 0)
-            {
-                return "";
-            }
 
+        /// <summary>
+        /// <para>
+        /// Читает следующие <paramref name="messageLength"/> байт из сетевого потока и
+        /// декодирует их в сообщение.
+        /// </para>
+        /// <para> Возвращает не-<c>null</c> строку сообщения. </para>
+        /// </summary>
+        /// <exception cref="InvalidMessageException"/>
+        /// <exception cref="System.IO.IOException"/>
+        /// <exception cref="ObjectDisposedException"/>
+        private string ReadMessage(ushort messageLength)
+        {
             byte[] messageBytes = new byte[messageLength];
-            bytesReadCount = stream.Read(messageBytes, 0, messageBytes.Length);
+            int bytesReadCount = stream.Read(messageBytes, 0, messageBytes.Length);
 
             if (bytesReadCount < messageLength)
             {
-                throw new InvalidMessageFormatException("Длина сообщения не соответсвтует длине, указанной в его заголоке.");
+                throw new InvalidMessageException("Длина сообщения не соответсвтует длине, указанной в его заголоке.");
             }
 
             string message = Encoding.UTF8.GetString(messageBytes, 0, messageBytes.Length);
