@@ -26,7 +26,8 @@ namespace TcpChatServer
                 TcpClient tcpClient = listener.AcceptTcpClient();
                 ClientSession session = new ClientSession(this, tcpClient);
 
-
+                sessions.Add(session);
+                session.AuthorizeUserAndProcessMessagesAsync();
             }
         }
 
