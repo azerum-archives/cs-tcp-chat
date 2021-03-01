@@ -49,6 +49,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ChatProtocol\ChatProtocol.csproj">
+      <Project>{8006035a-8e8a-45ad-bee5-6eddc4643ed3}</Project>
+      <Name>ChatProtocol</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\CopyBuildOutputToOneDrive.targets" />
 </Project>
