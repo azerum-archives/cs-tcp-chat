@@ -1,0 +1,12 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="AfterBuild" Condition="'$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <BuildOutput Include="$(ProjectDir)$(OutDir)\$(MSBuildProjectName).exe;
+                            $(ProjectDir)$(OutDir)\$(MSBuildProjectName).dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BuildOutput)" DestinationFolder="C:\Users\Admin\OneDrive - ITSTEP\TcpChat\"
+          Condition="Exists('%(FullPath)')" ContinueOnError="true"/>
+    <Message Text="Warning: Failed to copy build output of $(MSBuildProjectName) to OneDrive."
+             Condition="'$(MSBuildLastTaskResult)' == 'False'" />
+  </Target>       
+</Project>
